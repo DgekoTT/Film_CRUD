@@ -12,35 +12,35 @@ class GenreController {
     }
 
     async getAllGenre(req, res) {
-        let allFilms = await db.query('SELECT * FROM film');
+        let AllGenre = await db.query('SELECT * FROM genre');
 
-        res.json(allFilms.rows);
+        res.json(AllGenre.rows);
     }
 
     async getGenreByName(req, res) {
         let name = req.params.name;
-        let FilmByName = await db.query(`SELECT * FROM film WHERE
-         film_name = $1`, [name])
+        let GenreByName = await db.query(`SELECT * FROM genre WHERE
+         genre = $1`, [name])
 
-        res.json(FilmByName.rows[0])
+        res.json(GenreByName.rows[0])
     }
 
     async updateGenre(req, res) {
-        const {film_id, film_name, productionYear} = req.body;
+        const {genre_id, genre} = req.body;
         console.log(req.body)
-        let film = await db.query(`UPDATE film SET film_name = $2,
-         production_year = $3 WHERE film_id = $1 RETURNING *`,
-        [film_id, film_name, productionYear]);
+        let genreNew = await db.query(`UPDATE genre SET genre = $2,
+        WHERE genre_id = $1 RETURNING *`,
+        [genre_id, genre]);
         
-         res.json(film.rows[0]);
+         res.json(genreNew.rows[0]);
     }
 
     async deleteGenre(req, res) {
-        const name = req.params.name;
-        const film = await db.query(`DELETE FROM film WHERE 
-        film_name = $1`, [name]);
+        const genre = req.params.genre;
+        const genreDel = await db.query(`DELETE FROM genre WHERE 
+        genre_id = $1`, [genre]);
 
-        res.json(film.rows[0])
+        res.json(genreDel.rows[0])
     }
 }
 
