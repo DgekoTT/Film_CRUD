@@ -36,9 +36,10 @@ class GenreController {
     }
 
     async deleteGenre(req, res) {
-        const genre = req.params.genre;
+        const genre = req.params.name;
+        console.log(genre)
         const genreDel = await db.query(`DELETE FROM genre WHERE 
-        genre_id = $1`, [genre]);
+        genre = $1`, [genre]);
 
         res.json(genreDel.rows[0])
     }
