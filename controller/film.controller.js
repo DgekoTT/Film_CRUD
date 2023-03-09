@@ -136,8 +136,8 @@ function getFilmByNameAllGenre (filmByName, name) {
         filmByName[0].genre = genres;
 
         return filmByName[0];
-    };
-};
+    }
+}
 
 
 async function writeGenre(genres, newFilm_id) {
@@ -166,7 +166,7 @@ function  checkgenres(genres) {
             return `Жанр должен быть строкой!`;
         }
     }
-}
+};
 
 
 function checkBody (film_name, production_year, genres) {
@@ -197,7 +197,7 @@ async function findFilmID(film_name) {
         newFilm_id = newFilm_id.rows[0].film_id;
         return newFilm_id;
     }
-}
+};
 
 
 module.exports = new FilmController();
