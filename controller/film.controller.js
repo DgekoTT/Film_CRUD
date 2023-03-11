@@ -40,7 +40,8 @@ class FilmController {
     async getFilmByName(req, res) {
         let name = req.params.name;
 
-        let filmByName = await db.query(`SELECT * FROM film  JOIN
+        let filmByName = await db.query(`SELECT film_id, film_name,
+        production_year, genre FROM film  JOIN
         (film_genre  JOIN genre USING(genre_id)) USING (film_id) 
         WHERE film_name = $1`, [name]);
         filmByName = filmByName.rows;
@@ -49,45 +50,45 @@ class FilmController {
     }
 
     async updateFilm(req, res) {
-        let {film_name, production_year, genres} = req.body;
+        let {film_id, film_name, production_year, genres} = req.body;
 
         let fail = checkBody (film_name, production_year, genres);
 
         if (fail ) {
             res.json(fail);
         } else {
-            let film_id = await findFilmID(film_name);
+            let worning = await checkFilmId(film_id);
 
-            if (!film_id.rows.length) {
-                res.json(`Фильм ${film_name}  в базе не найден!`);
+            if (worning) {
+                    res.json(worning);
             } else {
-
                 let film = await db.query(`UPDATE film SET film_name = $2,
                 production_year = $3 WHERE film_id = $1 RETURNING *`,
                 [film_id, film_name, production_year]);
                 film = film.rows[0];
-
+        
                 let oldGenreDelete = await db.query(`DELETE FROM film_genre
                 WHERE film_id = $1`, [film_id]); 
-
+        
                 let setGenre = await writeGenre(genres, film_id);
-
+        
                 film.genres = genres.join(', ');
-
+        
                 res.json(film);
             }
         }
     }
+ 
+
 
     async deleteFilm(req, res) {
         const name = req.params.name;
         let film_id = await findFilmID(name);
 
-        if (!film_id.rows.length) {
+        if (!film_id) {
             res.json(`Фильм ${name}  в базе не найден!`);
         } else {
-            film_id = film_id.rows[0].film_id
-
+            
             const genreDelete = await db.query(`DELETE FROM film_genre WHERE 
             film_id = $1`, [film_id]);
 
@@ -190,7 +191,7 @@ function checkBody (film_name, production_year, genres) {
 async function findFilmID(film_name) {
     let newFilm_id = await db.query(`SELECT film_id 
     FROM film WHERE film_name = $1`,[film_name]);
-    console.log (newFilm_id.rows.length)
+
     if (!newFilm_id.rows.length) {
         return newFilm_id;
     } else {
@@ -199,5 +200,14 @@ async function findFilmID(film_name) {
     }
 };
 
+
+async function checkFilmId(film_id) {
+    let problem = await db.query(`SELECT * FROM film
+    WHERE film_id = $1`, [film_id]);
+    console.log(problem)
+    if (!problem.rows.length) {
+        return `Фильм в базе не найден!`;
+    }
+}
 
 module.exports = new FilmController();

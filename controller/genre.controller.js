@@ -1,3 +1,4 @@
+const { query } = require('express');
 const db = require('../db');
 
 
@@ -43,28 +44,40 @@ class GenreController {
         if (fail) {
             res.json(fail);
         } else {
-            let worning = findGenre(genre);
+            let checkId = await fingIdGenre(genre_id);
 
-            if (typeof worning != 'string') {
+            if (checkId) {
+               res.json(checkId);
+            } else {
                 let genreNew = await db.query(`UPDATE genre SET genre = $2,
                 WHERE genre_id = $1 RETURNING *`,
                 [genre_id, genre]);
-                
+                    
                 res.json(genreNew.rows[0]);
-            } else {
+    
                 res.json(worning);
             }
         }
-
     }
 
     async deleteGenre(req, res) {
         const genre = req.params.name;
-        console.log(genre)
-        const genreDel = await db.query(`DELETE FROM genre WHERE 
-        genre = $1`, [genre]);
 
-        res.json(genreDel.rows[0])
+        let fail = checkNameforString(genre);
+        if (fail) {
+            res.json(fail);
+        } else {
+            let worning = await findGenre(genre);
+
+            if (typeof worning == "string") {
+                res.json(worning);
+            } else {
+                const genreDel = await db.query(`DELETE FROM genre WHERE 
+                genre = $1`, [genre]);
+    
+                res.json(genreDel.rows[0])
+            }
+        }
     }
 }
 
@@ -87,6 +100,21 @@ async function findGenre(name) {
     return `Сценарий ${name} не найден в базе`;
 }
 
+
+async function fingIdGenre(genre_id) {
+    if (!Number.isInteger(genre_id)) {
+        return `Id должен быть числом`;
+    } else {
+        let worning = await db.query(`SELECT * FROM genre
+        WHERE genre_id = $1`, [genre_id]);
+
+        if (worning.rows.length == 0) {
+            return `Сценарий с Id ${genre_id} не найден в базе!`;
+        } else {
+            return false;
+        }
+    }
+}
 
 module.exports = new GenreController();
 
